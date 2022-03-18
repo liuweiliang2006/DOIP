@@ -7,7 +7,7 @@
 **     Version     : Component SDK_S32K1xx_15, Driver 01.00, CPU db: 3.00.000
 **     Repository  : SDK_S32K1xx_15
 **     Compiler    : GNU C Compiler
-**     Date/Time   : 2021-11-08, 11:26, # CodeGen: 0
+**     Date/Time   : 2022-03-17, 14:54, # CodeGen: 0
 **     Contents    :
 **         FTM_DRV_Init                            - status_t FTM_DRV_Init(uint32_t instance,const ftm_user_config_t * info,...
 **         FTM_DRV_Deinit                          - status_t FTM_DRV_Deinit(uint32_t instance);

@@ -613,16 +613,163 @@ sockex_testtwoselects(void *arg)
 }
 
 #if !SOCKET_EXAMPLES_RUN_PARALLEL
+#define LOCAL_PORT  13400
+#define RECV_DATA (100)
+void UDP_test(void *arg)
+{
+	  int sock = -1;
+	  char *recv_data;
+	  struct sockaddr_in udp_addr,seraddr;
+	  int recv_data_len;
+	  socklen_t addrlen;
+
+	  Printf("本地端口号是%d\n\n",LOCAL_PORT);
+
+	  while(1)
+	  {
+	    recv_data = (char *)pvPortMalloc(RECV_DATA);
+	    if (recv_data == NULL)
+	    {
+	        Printf("No memory\n");
+	        goto __exit;
+	    }
+
+	    sock = socket(AF_INET, SOCK_DGRAM, 0);
+	    if (sock < 0)
+	    {
+	      Printf("Socket error\n");
+	      goto __exit;
+	    }
+
+	    udp_addr.sin_family = AF_INET;
+	    udp_addr.sin_addr.s_addr = INADDR_ANY;
+	    udp_addr.sin_port = htons(LOCAL_PORT);
+	    memset(&(udp_addr.sin_zero), 0, sizeof(udp_addr.sin_zero));
+
+	    if (bind(sock, (struct sockaddr *)&udp_addr, sizeof(struct sockaddr)) == -1)
+	    {
+	      Printf("Unable to bind\n");
+	      goto __exit;
+	    }
+	    while(1)
+	    {
+	      recv_data_len=recvfrom(sock,recv_data,
+	                             RECV_DATA,0,
+	                             (struct sockaddr*)&seraddr,
+	                             &addrlen);
+
+	      /*显示发送端的IP地址*/
+	      Printf("receive from %s\n",inet_ntoa(seraddr.sin_addr));
+
+	      /*显示发送端发来的字串*/
+	      Printf("recevce:%s",recv_data);
+
+	      /*将字串返回给发送端*/
+	      sendto(sock,recv_data,
+	             recv_data_len,0,
+	             (struct sockaddr*)&seraddr,
+	             addrlen);
+	    }
+
+	__exit:
+	    if (sock >= 0) closesocket(sock);
+	    if (recv_data) free(recv_data);
+	  }
+}
+
+void TCP_test(void *arg)
+{
+	  int sock = -1,connected;
+	  char *recv_data;
+	  struct sockaddr_in server_addr,client_addr;
+	  socklen_t sin_size;
+	  int recv_data_len;
+
+	  Printf("本地端口号是%d\n\n",LOCAL_PORT);
+
+	  recv_data = (char *)pvPortMalloc(RECV_DATA);
+	  if (recv_data == NULL)
+	  {
+	      Printf("No memory\n");
+	      goto __exit;
+	  }
+
+	  sock = socket(AF_INET, SOCK_STREAM, 0);
+	  if (sock < 0)
+	  {
+	      Printf("Socket error\n");
+	      goto __exit;
+	  }
+
+	  server_addr.sin_family = AF_INET;
+	  server_addr.sin_addr.s_addr = INADDR_ANY;
+	  server_addr.sin_port = htons(LOCAL_PORT);
+	  memset(&(server_addr.sin_zero), 0, sizeof(server_addr.sin_zero));
+
+	  if (bind(sock, (struct sockaddr *)&server_addr, sizeof(struct sockaddr)) == -1)
+	  {
+	      Printf("Unable to bind\n");
+	      goto __exit;
+	  }
+
+	  if (listen(sock, 5) == -1)
+	  {
+	      Printf("Listen error\n");
+	      goto __exit;
+	  }
+
+	  while(1)
+	  {
+	    sin_size = sizeof(struct sockaddr_in);
+
+	    connected = accept(sock, (struct sockaddr *)&client_addr, &sin_size);
+
+	    Printf("new client connected from (%s, %d)\n",
+	            inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+	    {
+	      int flag = 1;
+
+	      setsockopt(connected,
+	                 IPPROTO_TCP,     /* set option at TCP level */
+	                 TCP_NODELAY,     /* name of option */
+	                 (void *) &flag,  /* the cast is historical cruft */
+	                 sizeof(int));    /* length of option value */
+	    }
+
+	    while(1)
+	    {
+	      recv_data_len = recv(connected, recv_data, RECV_DATA, 0);
+
+	      if (recv_data_len <= 0)
+	        break;
+
+	      Printf("recv %d len data\n",recv_data_len);
+
+	      write(connected,recv_data,recv_data_len);
+
+	    }
+	    if (connected >= 0)
+	      closesocket(connected);
+
+	    connected = -1;
+	  }
+	__exit:
+	  if (sock >= 0) closesocket(sock);
+	  if (recv_data) free(recv_data);
+}
 
 static void
 socket_example_test(void* arg)
 {
   /* Since we'll be initiating connections, make sure we have an address before going any further */
-  wait_for_ip();
 
-  sockex_nonblocking_connect(arg);
-  sockex_testrecv(arg);
-  sockex_testtwoselects(arg);
+  wait_for_ip();
+//  sockex_nonblocking_connect(arg);
+//  UDP_test(arg);
+  TCP_test(arg);
+//
+//  sockex_testrecv(arg);
+//  sockex_testtwoselects(arg);
   
   /* Our job is done. Block forever, since some OSes don't support tasks exiting. */
   while (1) {

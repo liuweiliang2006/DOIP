@@ -38,7 +38,7 @@
 /*************************************
  * Raw applications
  *************************************/
-#define LWIP_LWIPERF_APP              1                           /* lwIP iPerf server implementation to measure performance [support only TCP over IPv4] */
+#define LWIP_LWIPERF_APP              0                           /* lwIP iPerf server implementation to measure performance [support only TCP over IPv4] */
 #define LWIP_NETBIOS_APP              0                           /* NetBIOS name server. It responds to name queries for a
                                                                   configurable name. Name resolving is not supported. Note that the
                                                                   device doesn't broadcast its own name so can't detect duplicate names! */
@@ -54,7 +54,7 @@
 /*************************************
  * Socket applications
  *************************************/
-#define LWIP_CHARGEN_APP              1                           /* 1: Enable CHARGEN, 0: Disable CHARGEN */
+#define LWIP_CHARGEN_APP              0                           /* 1: Enable CHARGEN, 0: Disable CHARGEN */
 #define LWIP_SOCKET_EXAMPLES_APP      1
 #define LWIP_RTP_APP                  0
 

@@ -7,7 +7,7 @@
 **     Version     : Component SDK_S32K1xx_15, Driver 01.00, CPU db: 3.00.000
 **     Repository  : SDK_S32K1xx_15
 **     Compiler    : GNU C Compiler
-**     Date/Time   : 2021-11-08, 11:26, # CodeGen: 0
+**     Date/Time   : 2022-03-17, 14:54, # CodeGen: 0
 **     Contents    :
 **         LPIT_DRV_GetDefaultConfig                  - void LPIT_DRV_GetDefaultConfig(lpit_user_config_t * const config);
 **         LPIT_DRV_GetDefaultChanConfig              - void LPIT_DRV_GetDefaultChanConfig(lpit_user_channel_config_t * const config);

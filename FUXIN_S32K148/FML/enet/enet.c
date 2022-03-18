@@ -452,7 +452,7 @@ apps_init(void)
 #endif /* LWIP_TCPECHO_APP && LWIP_NETCONN */
 #if LWIP_UDPECHO_APP
 #if LWIP_NETCONN && LWIP_UDPECHO_APP_NETCONN
-  udpecho_init(&netif);
+//  udpecho_init(&netif);
 #else /* LWIP_NETCONN && LWIP_UDPECHO_APP_NETCONN */
   udpecho_raw_init();
 #endif /* LWIP_NETCONN && LWIP_UDPECHO_APP_NETCONN */
@@ -461,7 +461,7 @@ apps_init(void)
   (void)lwiperf_start_tcp_server_default(lwiperf_report, NULL);
 #endif
 #if LWIP_SOCKET_EXAMPLES_APP && LWIP_SOCKET
-//  socket_examples_init();
+  socket_examples_init();
 #endif /* LWIP_SOCKET_EXAMPLES_APP && LWIP_SOCKET */
 
 #if defined (COVERAGE_ENABLED) && (NO_SYS == 0)
@@ -473,7 +473,7 @@ apps_init(void)
 #endif
 
 #ifdef MQTT_TEST
-  mqtt_init();
+//  mqtt_init();
 #endif
 }
 

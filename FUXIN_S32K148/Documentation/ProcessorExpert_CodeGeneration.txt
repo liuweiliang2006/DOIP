@@ -100,3 +100,157 @@ Target Processor: S32K148_176; CPUDB ver 3.00.000
 # Documentation
  - Documentation\FUXIN_S32K148.txt - regenerated
 Totally 6 file(s) changed during code generation.
+###############################################################
+Code generation 2022/03/17, 14:55; CodeGen: 1 by user: Administrator
+by Processor Expert 10.1  for Internal Usage Only; PE core 05.21
+Target Processor: S32K148_176; CPUDB ver 3.00.000
+# There is no information about previous code generation available, starting from now.
+###############################################################
+Code generation 2022/03/17, 14:59; CodeGen: 2 by user: Administrator
+by Processor Expert 10.1  for Internal Usage Only; PE core 05.21
+Target Processor: S32K148_176; CPUDB ver 3.00.000
+# Settings of the component clockMan1:clock_manager have been changed:
+ > property ProjectComponentsCountChanged : value changed from 2 to 0
+# Component FreeRTOS:FreeRTOS, the following files modified due to internal interdependency:
+ - HAL\FreeRTOS.c - changed
+# Component slave:lpspi, the following files modified due to internal interdependency:
+ - HAL\slave.h - changed
+# Component lin_cfg:LinStack, the following files modified due to internal interdependency:
+ - HAL\lin_cfg.h - changed
+ - HAL\lin_cfg.c - changed
+# Documentation
+ - Documentation\FUXIN_S32K148.txt - regenerated
+Totally 5 file(s) changed during code generation.
+###############################################################
+Code generation 2022/03/17, 15:02; CodeGen: 3 by user: Administrator
+by Processor Expert 10.1  for Internal Usage Only; PE core 05.21
+Target Processor: S32K148_176; CPUDB ver 3.00.000
+# Settings of the component FreeRTOS:FreeRTOS have been changed:
+ > property Minimal stack size : value changed from 512 to 90
+ > property Total heap size : value changed from 49152 to 61440
+ - HAL\FreeRTOS.c - changed
+ - HAL\FreeRTOSConfig.h - changed
+# Component lin_cfg:LinStack, the following files modified due to internal interdependency:
+ - HAL\lin_cfg.h - changed
+ - HAL\lin_cfg.c - changed
+# Documentation
+ - Documentation\FUXIN_S32K148.txt - regenerated
+Totally 5 file(s) changed during code generation.
+###############################################################
+Code generation 2022/03/17, 15:14; CodeGen: 4 by user: Administrator
+by Processor Expert 10.1  for Internal Usage Only; PE core 05.21
+Target Processor: S32K148_176; CPUDB ver 3.00.000
+# Component FreeRTOS:FreeRTOS, the following files modified due to internal interdependency:
+ - HAL\FreeRTOS.c - changed
+# Component slave:lpspi, the following files modified due to internal interdependency:
+ - HAL\slave.h - changed
+# Component lin_cfg:LinStack, the following files modified due to internal interdependency:
+ - HAL\lin_cfg.h - changed
+ - HAL\lin_cfg.c - changed
+# Settings of the component tcpip_middleware:tcpip have been changed:
+ > property LWIPERF : value changed from yes to no
+ > property CHARGEN : value changed from yes to no
+ - HAL\lwipopts.h - changed
+ - HAL\lwipcfg.h - changed
+# Documentation
+ - Documentation\FUXIN_S32K148.txt - regenerated
+Totally 7 file(s) changed during code generation.
+###############################################################
+Code generation 2022/03/18, 13:17; CodeGen: 5 by user: Administrator
+by Processor Expert 10.1  for Internal Usage Only; PE core 05.21
+Target Processor: S32K148_176; CPUDB ver 3.00.000
+# Settings of the component clockMan1:clock_manager have been changed:
+ > property ProjectComponentsCountChanged : value changed from 0 to 2
+# Settings of the component FreeRTOS:FreeRTOS have been changed:
+ > property Minimal stack size : value changed from 90 to 512
+ > property Total heap size : value changed from 61440 to 49152
+ - HAL\FreeRTOS.c - changed
+ - HAL\FreeRTOSConfig.h - changed
+# Component slave:lpspi, the following files modified due to internal interdependency:
+ - HAL\slave.h - changed
+# Component lin_cfg:LinStack, the following files modified due to internal interdependency:
+ - HAL\lin_cfg.h - changed
+ - HAL\lin_cfg.c - changed
+# Settings of the component tcpip_middleware:tcpip have been changed:
+ > property Minimal stack size[bytes] : value changed from 90 to 512
+ > property Total heap size[bytes] : value changed from 61440 to 49152
+ - SDK\middleware\tcpip\tcpip_stack\ports\OS\sys_arch.c - changed
+ - SDK\middleware\tcpip\tcpip_stack\apps\socket_examples\socket_examples.c - changed
+ - HAL\lwipopts.h - changed
+# Documentation
+ - Documentation\FUXIN_S32K148.txt - regenerated
+Totally 9 file(s) changed during code generation.
+###############################################################
+Code generation 2022/03/18, 13:19; CodeGen: 6 by user: Administrator
+by Processor Expert 10.1  for Internal Usage Only; PE core 05.21
+Target Processor: S32K148_176; CPUDB ver 3.00.000
+# Settings of the component clockMan1:clock_manager have been changed:
+ > property ProjectComponentsCountChanged : value changed from 2 to 0
+# Settings of the component FreeRTOS:FreeRTOS have been changed:
+ > property Minimal stack size : value changed from 512 to 90
+ > property Total heap size : value changed from 49152 to 61140
+ - HAL\FreeRTOS.c - changed
+ - HAL\FreeRTOSConfig.h - changed
+# Component lin_cfg:LinStack, the following files modified due to internal interdependency:
+ - HAL\lin_cfg.h - changed
+ - HAL\lin_cfg.c - changed
+# Settings of the component tcpip_middleware:tcpip have been changed:
+ > property Minimal stack size[bytes] : value changed from 512 to 90
+ > property Total heap size[bytes] : value changed from 49152 to 61140
+# Documentation
+ - Documentation\FUXIN_S32K148.txt - regenerated
+Totally 5 file(s) changed during code generation.
+###############################################################
+Code generation 2022/03/18, 13:35; CodeGen: 8 by user: Administrator
+by Processor Expert 10.1  for Internal Usage Only; PE core 05.21
+Target Processor: S32K148_176; CPUDB ver 3.00.000
+# Component FreeRTOS:FreeRTOS, the following files modified due to internal interdependency:
+ - HAL\FreeRTOS.c - changed
+# Component slave:lpspi, the following files modified due to internal interdependency:
+ - HAL\slave.h - changed
+# Component lin_cfg:LinStack, the following files modified due to internal interdependency:
+ - HAL\lin_cfg.h - changed
+ - HAL\lin_cfg.c - changed
+# Settings of the component tcpip_middleware:tcpip have been changed:
+ > property UDP_ECHO_NETCONN : value changed from no to yes
+ - SDK\middleware\tcpip\tcpip_stack\apps\socket_examples\socket_examples.c - changed
+ - HAL\lwipopts.h - changed
+ - HAL\lwipcfg.h - changed
+# Documentation
+ - Documentation\FUXIN_S32K148.txt - regenerated
+Totally 8 file(s) changed during code generation.
+###############################################################
+Code generation 2022/03/18, 15:47; CodeGen: 9 by user: Administrator
+by Processor Expert 10.1  for Internal Usage Only; PE core 05.21
+Target Processor: S32K148_176; CPUDB ver 3.00.000
+# Component FreeRTOS:FreeRTOS, the following files modified due to internal interdependency:
+ - HAL\FreeRTOS.c - changed
+# Component slave:lpspi, the following files modified due to internal interdependency:
+ - HAL\slave.h - changed
+# Component lin_cfg:LinStack, the following files modified due to internal interdependency:
+ - HAL\lin_cfg.h - changed
+ - HAL\lin_cfg.c - changed
+# Settings of the component tcpip_middleware:tcpip have been changed:
+ > property TCP_ECHO_NETCONN : value changed from no to yes
+ - SDK\middleware\tcpip\tcpip_stack\apps\socket_examples\socket_examples.c - changed
+ - HAL\lwipopts.h - changed
+ - HAL\lwipcfg.h - changed
+# Documentation
+ - Documentation\FUXIN_S32K148.txt - regenerated
+Totally 8 file(s) changed during code generation.
+###############################################################
+Code generation 2022/03/18, 15:57; CodeGen: 10 by user: Administrator
+by Processor Expert 10.1  for Internal Usage Only; PE core 05.21
+Target Processor: S32K148_176; CPUDB ver 3.00.000
+# Component FreeRTOS:FreeRTOS, the following files modified due to internal interdependency:
+ - HAL\FreeRTOS.c - changed
+# Component lin_cfg:LinStack, the following files modified due to internal interdependency:
+ - HAL\lin_cfg.h - changed
+ - HAL\lin_cfg.c - changed
+# Settings of the component tcpip_middleware:tcpip have been changed:
+ > property TCP_ECHO_NETCONN : value changed from yes to no
+ > property UDP_ECHO_NETCONN : value changed from yes to no
+ - HAL\lwipcfg.h - changed
+# Documentation
+ - Documentation\FUXIN_S32K148.txt - regenerated
+Totally 5 file(s) changed during code generation.

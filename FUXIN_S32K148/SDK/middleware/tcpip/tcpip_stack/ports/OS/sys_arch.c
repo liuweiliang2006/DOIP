@@ -431,7 +431,7 @@ static void sys_thread_function(void* arg)
 sys_thread_t sys_thread_new(const char *name, lwip_thread_fn thread, void *arg, int stacksize, int prio)
 {
   TaskHandle_t CreatedTask = NULL;
-  uint16_t stackDepth = ((uint16_t)stacksize != 0U) ? (uint16_t)stacksize : (uint16_t)configMINIMAL_STACK_SIZE;
+  uint16_t stackDepth = ((uint16_t)stacksize != 0U) ? (uint16_t)stacksize : (uint16_t)configMINIMAL_STACK_SIZE*6;
   struct threadfunc* tf = (struct threadfunc*)mem_malloc(sizeof (struct threadfunc));
 
   LWIP_ASSERT("tf != NULL", tf != NULL);
@@ -439,7 +439,7 @@ sys_thread_t sys_thread_new(const char *name, lwip_thread_fn thread, void *arg, 
   tf->function = thread;
   tf->arg = arg;
 
-  xTaskCreate(sys_thread_function, name, stackDepth*6, tf, prio, &CreatedTask);
+  xTaskCreate(sys_thread_function, name, stackDepth, tf, prio, &CreatedTask);
 
   return CreatedTask;
 }
