@@ -651,6 +651,7 @@ void UDP_test(void *arg)
 	      Printf("Unable to bind\n");
 	      goto __exit;
 	    }
+	    addrlen = sizeof(struct sockaddr);
 	    while(1)
 	    {
 	      recv_data_len=recvfrom(sock,recv_data,
@@ -765,8 +766,8 @@ socket_example_test(void* arg)
 
   wait_for_ip();
 //  sockex_nonblocking_connect(arg);
-//  UDP_test(arg);
-  TCP_test(arg);
+  UDP_test(arg);
+//  TCP_test(arg);
 //
 //  sockex_testrecv(arg);
 //  sockex_testtwoselects(arg);
