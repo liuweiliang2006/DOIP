@@ -127,6 +127,7 @@
 #include "lwipcfg.h"
 
 #include "mqtt_app.h"
+#include "doip_app.h"
 #include "enet.h"
 /* applications includes */
 
@@ -461,7 +462,7 @@ apps_init(void)
   (void)lwiperf_start_tcp_server_default(lwiperf_report, NULL);
 #endif
 #if LWIP_SOCKET_EXAMPLES_APP && LWIP_SOCKET
-  socket_examples_init();
+//  socket_examples_init();
 #endif /* LWIP_SOCKET_EXAMPLES_APP && LWIP_SOCKET */
 
 #if defined (COVERAGE_ENABLED) && (NO_SYS == 0)
@@ -471,7 +472,7 @@ apps_init(void)
 #ifdef LWIP_APP_INIT
   LWIP_APP_INIT();
 #endif
-
+  doip_task_init();
 #ifdef MQTT_TEST
 //  mqtt_init();
 #endif
