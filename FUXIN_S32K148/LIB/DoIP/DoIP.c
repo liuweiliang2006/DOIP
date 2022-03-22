@@ -29,6 +29,30 @@ static uint16 pendingRoutingActivationSa = 0xff;
 static uint16 pendingRoutingActivationActivationType = 0xffff;
 static uint8* pendingRoutingActivationTxBuffer = NULL;
 
+#ifndef DOIP_RAND
+uint16 doip_rand(void) {
+	// https://en.wikipedia.org/wiki/Xorshift
+	static uint32 x = 123456789;
+	static uint32 y = 362436069;
+	static uint32 z = 521288629;
+	static uint32 w = 88675123;
+	uint32 t;
+
+	t = x ^ (x << 11);
+	x = y; y = z; z = w;
+	w = w ^ (w >> 19) ^ (t ^ (t >> 8));
+	return (uint16) w;
+}
+#define DOIP_RAND doip_rand
+#endif
+
+void DoIp_wait_time(void)
+{
+	LinkStatus = DOIP_LINK_UP;
+	DoIp_ArcAnnouncementTimer = 0;
+	DoIp_ArcAnnounceWait = DOIP_RAND() % SOAD_DOIP_ANNOUNCE_WAIT;
+}
+
 void discardIpMessage(uint16 socketHandle, uint16 len, uint8 *rxBuffer)
 {
 	// Discarding this message
@@ -97,7 +121,8 @@ static void createVehicleIdentificationResponse(uint8* txBuffer) {
 	txBuffer[7] = 33;
 
 	// VIN field
-	if (E_NOT_OK == SoAd_DoIp_Arc_GetVin(&txBuffer[8+0], 17)) {
+	if (E_NOT_OK == E_NOT_OK) {
+//	if (E_NOT_OK == SoAd_DoIp_Arc_GetVin(&txBuffer[8+0], 17)) {
 		for (i = 0; i < 17; i++) {
 			txBuffer[8+0+i] = 0;
 		}
@@ -108,26 +133,30 @@ static void createVehicleIdentificationResponse(uint8* txBuffer) {
 	txBuffer[8+17+1] = (SoAd_Config.DoIpNodeLogicalAddress >> 0) & 0xff;
 
 	// EID field
-	if (E_NOT_OK == SoAd_DoIp_Arc_GetEid(&txBuffer[8+19], 6)) {
+	if (E_NOT_OK == E_NOT_OK) {
+//	if (E_NOT_OK == SoAd_DoIp_Arc_GetEid(&txBuffer[8+19], 6)) {
 		for (i = 0; i < 6; i++) {
 			txBuffer[8+19+i] = 0;
 		}
 	}
 
 	// GID field
-	if (E_NOT_OK == SoAd_DoIp_Arc_GetGid(&txBuffer[8+25], 6)) {
+	if (E_NOT_OK == E_NOT_OK) {
+//	if (E_NOT_OK == SoAd_DoIp_Arc_GetGid(&txBuffer[8+25], 6)) {
 		for (i = 0; i < 6; i++) {
 			txBuffer[8+25+i] = 0;
 		}
 	}
 
 	// Further action required field
-	if (E_NOT_OK == SoAd_DoIp_Arc_GetFurtherActionRequired(&txBuffer[8+31])) {
+	if (E_NOT_OK == E_NOT_OK) {
+//	if (E_NOT_OK == SoAd_DoIp_Arc_GetFurtherActionRequired(&txBuffer[8+31])) {
 		txBuffer[8+31] = 0x00;	// No further action required
 	}
 
 	// VIN/GID Sync Status field
-	if (E_NOT_OK == SoAd_DoIp_Arc_GetFurtherActionRequired(&txBuffer[8+32])) {
+	if (E_NOT_OK == E_NOT_OK) {
+//	if (E_NOT_OK == SoAd_DoIp_Arc_GetFurtherActionRequired(&txBuffer[8+32])) {
 		txBuffer[8+32] = VinGidSyncStatus;
 	}
 
@@ -918,6 +947,92 @@ static void handleDiagnosticMessage(uint16 sockNr, uint32 payloadLength, uint8 *
 		SoAd_SocketClose(sockNr);
 	}
 #endif /* USE_PDUR */
+}
+
+void DoIp_HandleUdpRx(uint16 sockNr)
+{
+	int nBytes;
+	uint8* rxBuffer;
+	uint16 payloadType;
+	uint16 payloadLength;
+	uint32 RemoteIpAddress;
+	uint16 RemotePort;
+
+	if (SoAd_BufferGet(SOAD_RX_BUFFER_SIZE, &rxBuffer)) {
+//	    nBytes = SoAd_RecvFromImpl(SocketAdminList[sockNr].SocketHandle, rxBuffer, SOAD_RX_BUFFER_SIZE, MSG_PEEK, &RemoteIpAddress, &RemotePort);
+		nBytes = SoAd_RecvFromImpl(SocketAdminList[sockNr].SocketHandle, rxBuffer, SOAD_RX_BUFFER_SIZE, 0, &RemoteIpAddress, &RemotePort);
+		SoAd_SocketStatusCheck(sockNr, SocketAdminList[sockNr].SocketHandle);
+		if (nBytes >= 8) {
+			/*NOTE: REMOVE WHEN MOVED TO CANOE8.1*/
+//			if (((rxBuffer[0] == 1) || (rxBuffer[0] == 2)) && (((uint8)(~rxBuffer[1]) == 1) || ((uint8)(~rxBuffer[1]) == 2))) {
+				if ((rxBuffer[0] == DOIP_PROTOCOL_VERSION) && ((uint8)(~rxBuffer[1]) == DOIP_PROTOCOL_VERSION)) {
+				payloadType = rxBuffer[2] << 8 | rxBuffer[3];
+				payloadLength = (rxBuffer[4] << 24) | (rxBuffer[5] << 16) | (rxBuffer[6] << 8) | rxBuffer[7];
+				if ((payloadLength + 8) <= SOAD_RX_BUFFER_SIZE) {
+					if ((payloadLength + 8) <= nBytes) {
+						// Grab the message
+						nBytes = SoAd_RecvFromImpl(SocketAdminList[sockNr].SocketHandle, rxBuffer, payloadLength + 8, 0, &RemoteIpAddress, &RemotePort);
+						SocketAdminList[sockNr].RemotePort = RemotePort;
+						SocketAdminList[sockNr].RemoteIpAddress = RemoteIpAddress;
+						switch (payloadType) {
+
+						case 0x0001:	// Vehicle Identification Request
+							handleVehicleIdentificationReq(sockNr, payloadLength, rxBuffer, SOAD_ARC_DOIP_IDENTIFICATIONREQUEST_ALL);
+							break;
+
+						case 0x0002:	// Vehicle Identification Request with EID
+							handleVehicleIdentificationReq(sockNr, payloadLength, rxBuffer, SOAD_ARC_DOIP_IDENTIFICATIONREQUEST_BY_EID);
+							break;
+
+						case 0x0003:	// Vehicle Identification Request with VIN
+							handleVehicleIdentificationReq(sockNr, payloadLength, rxBuffer, SOAD_ARC_DOIP_IDENTIFICATIONREQUEST_BY_VIN);
+							break;
+
+						case 0x0004://Quick Fix to Vehicle announcement.
+							break;
+
+#if 0 /* Routing activation is not to be supported over UDP */
+						case 0x005:		// Routing Activation request
+							handleRoutingActivationReq(sockNr, payloadLength, rxBuffer);
+							break;
+#endif /* Routing activation is not to be supported over UDP */
+
+						case 0x4001:    /* DoIP entity status request */
+							handleEntityStatusReq(sockNr, payloadLength, rxBuffer);
+							break;
+
+						case 0x4003:    /* DoIP power mode check request */
+							handlePowerModeCheckReq(sockNr, payloadLength, rxBuffer);
+							break;
+
+
+#if 0 /* Diagnostic messages is not to be supported over UDP */
+						case 0x8001:	// Diagnostic message
+							handleDiagnosticMessage(sockNr, payloadLength, rxBuffer);
+							break;
+#endif  /* Diagnostic messages is not to be supported over UDP */
+
+						default:
+							createAndSendNack(sockNr, DOIP_E_UNKNOWN_PAYLOAD_TYPE);
+					        discardIpMessage(SocketAdminList[sockNr].SocketHandle, payloadLength + 8, rxBuffer);
+							break;
+						}
+					}
+				} else {
+					createAndSendNack(sockNr, DOIP_E_MESSAGE_TO_LARGE);
+					discardIpMessage(SocketAdminList[sockNr].SocketHandle, payloadLength + 8, rxBuffer);
+				}
+			} else {
+				createAndSendNack(sockNr, DOIP_E_INCORRECT_PATTERN_FORMAT);
+				SoAd_SocketClose(sockNr);
+			}
+		}
+
+		SoAd_BufferFree(rxBuffer);
+	} else {
+		// No rx buffer available. Report this in Det. Message should be handled in the next (scanSockets) loop.
+//		DET_REPORTERROR(MODULE_ID_SOAD, 0, SOAD_DOIP_HANDLE_UDP_RX_ID, SOAD_E_NOBUFS);
+	}
 }
 
 void DoIp_HandleTcpRx(uint16 sockNr)

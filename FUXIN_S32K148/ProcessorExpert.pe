@@ -3,7 +3,7 @@
   <Header>
     <Name>FUXIN_S32K148</Name>
     <SavedBy>Administrator</SavedBy>
-    <ModificationStamp>56</ModificationStamp>
+    <ModificationStamp>57</ModificationStamp>
     <Date>2020-12-11</Date>
     <IDE>Eclipse IDE</IDE>
     <PEversion>1.12.2.RT7_b1743-0713</PEversion>
@@ -22615,7 +22615,7 @@
         <ItemSymbol>ProjectComponentsCountChanged</ItemSymbol>
         <ReadOnly>false</ReadOnly>
         <UserReadOnly>false</UserReadOnly>
-        <Value>0</Value>
+        <Value>1</Value>
       </ItemState>
       <ItemState>
         <ItemSymbol>ModuleName_ADC</ItemSymbol>

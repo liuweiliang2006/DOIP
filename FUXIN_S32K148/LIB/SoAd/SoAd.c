@@ -90,8 +90,11 @@ void SoAd_SocketStatusCheck(uint16 sockNr, int sockHandle)
 uint16 SoAd_SendIpMessage(uint16 sockNr, uint32 msgLen, uint8* buff)
 {
 	uint16 bytesSent;
+	uint8 buffer[200];
 //	ASMEM(SOAD,"TX",buff,msgLen);
+	memcpy(buffer,buff,msgLen);
 	if (SocketAdminList[sockNr].SocketProtocolIsTcp) {
+
 		bytesSent = SoAd_SendImpl(SocketAdminList[sockNr].ConnectionHandle, buff, msgLen, 0);
 	} else {
 		bytesSent = SoAd_SendToImpl(SocketAdminList[sockNr].SocketHandle, buff, msgLen,
@@ -117,10 +120,13 @@ static void socketCreate(uint16 sockNr)
     sockFd = SoAd_CreateSocketImpl(AF_INET, sockType, 0);
     if (sockFd >= 0) {
 //        ASLOG(SOAD,"SoAd create socket[%d] okay.\n",sockNr);
+    	Printf("SoAd create socket[%d] okay.\n",sockNr);
 		r = SoAd_BindImpl(sockFd, SocketAdminList[sockNr].SocketConnectionRef->SocketLocalPort);
 		if(r >= 0) {
 //			ASLOG(SOAD,"SoAd bind socket[%d] on port %d okay.\n",sockNr,
 //                SocketAdminList[sockNr].SocketConnectionRef->SocketLocalPort);
+			Printf("SoAd bind socket[%d] on port %d okay.\n",sockNr,
+					                SocketAdminList[sockNr].SocketConnectionRef->SocketLocalPort);
             if (!SocketAdminList[sockNr].SocketProtocolIsTcp) {
             	// Now the UDP socket is ready for receive/transmit
             	SocketAdminList[sockNr].SocketHandle = sockFd;
@@ -129,21 +135,25 @@ static void socketCreate(uint16 sockNr)
                 if  ( SoAd_ListenImpl(sockFd, 20) == 0 ){	// NOTE: What number of the backlog?
                 	// Now the TCP socket is ready for receive/transmit
 //                    ASLOG(SOAD,"SoAd listen socket[%d] okay.\n",sockNr);
+                	Printf("SoAd listen socket[%d] okay.\n",sockNr);
                 	SocketAdminList[sockNr].SocketHandle = sockFd;
                 	SocketAdminList[sockNr].SocketState = SOCKET_TCP_LISTENING;
                 } else {
 //                    ASLOG(SOADE,"SoAd listen socket[%d] failed.\n",sockNr);
+                	Printf("SoAd listen socket[%d] failed.\n",sockNr);
                 	SoAd_SocketCloseImpl(sockFd);
                 }
             }
     	} else {
 //            ASLOG(SOADE,"SoAd bind socket[%d] failed.\n",sockNr);
+    		Printf("SoAd bind socket[%d] failed.\n",sockNr);
     		SoAd_SocketCloseImpl(sockFd);
     	}
     } else {
     	// Socket creation failed
     	// Do nothing, try again later
 //        ASLOG(SOADE,"SoAd create socket[%d] failed! try again later.\n",sockNr);
+    	Printf("SoAd create socket[%d] failed! try again later.\n",sockNr);
     }
 }
 
@@ -193,91 +203,6 @@ uint8 SoAd_GetNofCurrentlyUsedTcpSockets() {
 	return count;
 }
 
-
-void DoIp_HandleUdpRx(uint16 sockNr)
-{
-	int nBytes;
-	uint8* rxBuffer;
-	uint16 payloadType;
-	uint16 payloadLength;
-	uint32 RemoteIpAddress;
-	uint16 RemotePort;
-
-	if (SoAd_BufferGet(SOAD_RX_BUFFER_SIZE, &rxBuffer)) {
-	    nBytes = SoAd_RecvFromImpl(SocketAdminList[sockNr].SocketHandle, rxBuffer, SOAD_RX_BUFFER_SIZE, MSG_PEEK, &RemoteIpAddress, &RemotePort);
-		SoAd_SocketStatusCheck(sockNr, SocketAdminList[sockNr].SocketHandle);
-		if (nBytes >= 8) {
-			/*NOTE: REMOVE WHEN MOVED TO CANOE8.1*/
-//			if (((rxBuffer[0] == 1) || (rxBuffer[0] == 2)) && (((uint8)(~rxBuffer[1]) == 1) || ((uint8)(~rxBuffer[1]) == 2))) {
-				if ((rxBuffer[0] == DOIP_PROTOCOL_VERSION) && ((uint8)(~rxBuffer[1]) == DOIP_PROTOCOL_VERSION)) {
-				payloadType = rxBuffer[2] << 8 | rxBuffer[3];
-				payloadLength = (rxBuffer[4] << 24) | (rxBuffer[5] << 16) | (rxBuffer[6] << 8) | rxBuffer[7];
-				if ((payloadLength + 8) <= SOAD_RX_BUFFER_SIZE) {
-					if ((payloadLength + 8) <= nBytes) {
-						// Grab the message
-						nBytes = SoAd_RecvFromImpl(SocketAdminList[sockNr].SocketHandle, rxBuffer, payloadLength + 8, 0, &RemoteIpAddress, &RemotePort);
-						SocketAdminList[sockNr].RemotePort = RemotePort;
-						SocketAdminList[sockNr].RemoteIpAddress = RemoteIpAddress;
-						switch (payloadType) {
-
-						case 0x0001:	// Vehicle Identification Request
-							handleVehicleIdentificationReq(sockNr, payloadLength, rxBuffer, SOAD_ARC_DOIP_IDENTIFICATIONREQUEST_ALL);
-							break;
-
-						case 0x0002:	// Vehicle Identification Request with EID
-							handleVehicleIdentificationReq(sockNr, payloadLength, rxBuffer, SOAD_ARC_DOIP_IDENTIFICATIONREQUEST_BY_EID);
-							break;
-
-						case 0x0003:	// Vehicle Identification Request with VIN
-							handleVehicleIdentificationReq(sockNr, payloadLength, rxBuffer, SOAD_ARC_DOIP_IDENTIFICATIONREQUEST_BY_VIN);
-							break;
-
-						case 0x0004://Quick Fix to Vehicle announcement.
-							break;
-
-#if 0 /* Routing activation is not to be supported over UDP */
-						case 0x005:		// Routing Activation request
-							handleRoutingActivationReq(sockNr, payloadLength, rxBuffer);
-							break;
-#endif /* Routing activation is not to be supported over UDP */
-
-						case 0x4001:    /* DoIP entity status request */
-							handleEntityStatusReq(sockNr, payloadLength, rxBuffer);
-							break;
-
-						case 0x4003:    /* DoIP power mode check request */
-							handlePowerModeCheckReq(sockNr, payloadLength, rxBuffer);
-							break;
-
-
-#if 0 /* Diagnostic messages is not to be supported over UDP */
-						case 0x8001:	// Diagnostic message
-							handleDiagnosticMessage(sockNr, payloadLength, rxBuffer);
-							break;
-#endif  /* Diagnostic messages is not to be supported over UDP */
-
-						default:
-							createAndSendNack(sockNr, DOIP_E_UNKNOWN_PAYLOAD_TYPE);
-					        discardIpMessage(SocketAdminList[sockNr].SocketHandle, payloadLength + 8, rxBuffer);
-							break;
-						}
-					}
-				} else {
-					createAndSendNack(sockNr, DOIP_E_MESSAGE_TO_LARGE);
-					discardIpMessage(SocketAdminList[sockNr].SocketHandle, payloadLength + 8, rxBuffer);
-				}
-			} else {
-				createAndSendNack(sockNr, DOIP_E_INCORRECT_PATTERN_FORMAT);
-				SoAd_SocketClose(sockNr);
-			}
-		}
-
-		SoAd_BufferFree(rxBuffer);
-	} else {
-		// No rx buffer available. Report this in Det. Message should be handled in the next (scanSockets) loop.
-//		DET_REPORTERROR(MODULE_ID_SOAD, 0, SOAD_DOIP_HANDLE_UDP_RX_ID, SOAD_E_NOBUFS);
-	}
-}
 
 
 static void socketTcpRead(uint16 sockNr)
@@ -395,7 +320,6 @@ void SoAd_Init(void)
 	// Initialize PduStatus of PduAdminList
 	for (i = 0; i < SOAD_PDU_ROUTE_COUNT; i++) {
 		PduAdminList[i].PduStatus = PDU_IDLE;
-		;
 	}
 
 	DoIp_Init();

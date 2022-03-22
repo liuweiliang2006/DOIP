@@ -185,13 +185,16 @@ void doip_loop_task( void *pvParameters )
     {
     	Printf("doip loop\r\n");
     	vTaskDelayUntil(&xNextWakeTime, (100/portTICK_RATE_MS));
-    	DoIp_MainFunction();
+
     	SoAd_MainFunction();
+    	DoIp_MainFunction();
 //    	TCP_test_func();
 //    	UDP_test_func();
 
     }
 }
+
+
 
 void doip_task_init(void)
 {
@@ -199,8 +202,9 @@ void doip_task_init(void)
 	  IP_SET_TYPE_VAL(dstaddr, IPADDR_TYPE_V4);
 	  ip4addr_aton(SOCK_TARGET_HOST4, ip_2_ip4(&dstaddr));
 	  SoAd_Init();
+	  DoIp_wait_time();
 //	  ip4addr_aton(SOCK_TARGET_HOST4, ip_2_ip4(&dstaddr));
 //    xTaskCreate( MQTT_test_task, "MQTT_test", 12*configMINIMAL_STACK_SIZE, NULL, 1, NULL );
-    sys_thread_new("creat_doip", doip_loop_task, NULL, 400, DEFAULT_THREAD_PRIO);
+	  sys_thread_new("creat_doip", doip_loop_task, NULL, 400, DEFAULT_THREAD_PRIO);
 //    sys_thread_new("MQTT_send", MQTT_send, NULL, DEFAULT_THREAD_STACKSIZE, DEFAULT_THREAD_PRIO);
 }

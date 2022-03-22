@@ -12,18 +12,18 @@
 static const SoAd_SocketConnectionType SoAd_SocketConnection [SOAD_SOCKET_COUNT] =
 {
 	{	/* for DCM */
-		.SocketRemoteIpAddress = "172.18.0.200",
-		.SocketRemotePort = 8989,
-		.SocketProtocol = SOAD_SOCKET_PROT_TCP,
-		.SocketLocalPort = 8989,
+		.SocketRemoteIpAddress = "192.168.0.2",
+		.SocketRemotePort = 777,
+		.SocketProtocol = SOAD_SOCKET_PROT_UDP,
+		.SocketLocalPort = 13400,
 		.AutosarConnectorType = SOAD_AUTOSAR_CONNECTOR_DOIP,
 	},
 	{	/* for COM */
-		.SocketRemoteIpAddress = "172.18.0.200",
-		.SocketRemotePort = 3344,
+		.SocketRemoteIpAddress = "192.168.0.2",
+		.SocketRemotePort = 777,
 		.SocketProtocol = SOAD_SOCKET_PROT_TCP,
-		.SocketLocalPort = 3344,
-		.AutosarConnectorType = SOAD_AUTOSAR_CONNECTOR_PDUR,
+		.SocketLocalPort = 13400,
+		.AutosarConnectorType = SOAD_AUTOSAR_CONNECTOR_DOIP,
 	}
 };
 static const DoIp_TargetAddressConfigType SoAd_DoIpTargetAddresses[DOIP_TARGET_COUNT]=
