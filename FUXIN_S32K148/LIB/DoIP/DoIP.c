@@ -9,6 +9,8 @@
 #include "ack_codes.h"
 #include "SoAd_Types.h"
 #include "ack_codes.h"
+#include "ComStack_Types.h"
+#include "CanTp_Cfg.h"
 
 static uint8 VinGidSyncStatus = 0x10;
 
@@ -121,8 +123,8 @@ static void createVehicleIdentificationResponse(uint8* txBuffer) {
 	txBuffer[7] = 33;
 
 	// VIN field
-	if (E_NOT_OK == E_NOT_OK) {
-//	if (E_NOT_OK == SoAd_DoIp_Arc_GetVin(&txBuffer[8+0], 17)) {
+//	if (E_NOT_OK == E_NOT_OK) {
+	if (E_NOT_OK == SoAd_DoIp_Arc_GetVin(&txBuffer[8+0], 17)) {
 		for (i = 0; i < 17; i++) {
 			txBuffer[8+0+i] = 0;
 		}
@@ -876,18 +878,129 @@ static void handleTimeout(uint16 connectionIndex) {
 
 }
 
+
+typedef enum {
+	LOOKUP_SA_TA_OK,
+	LOOKUP_SA_TA_TAUNKNOWN,
+	LOOKUP_SA_TA_SAERR
+} LookupSaTaResultType;
+
+LookupSaTaResultType lookupSaTa(uint16 connectionIndex, uint16 sa, uint16 ta, uint16* targetIndex)
+{
+	uint16 i;
+	uint16 routingActivationIndex = 0xffff;
+
+
+	if (0xffff == connectionIndex) {
+		// Connection not registered!
+		return LOOKUP_SA_TA_SAERR;
+	}
+
+	for (i = 0; i < DOIP_ROUTINGACTIVATION_COUNT; i++) {
+		if (connectionStatus[i].activationType == SoAd_Config.DoIpRoutingActivations[i].activationNumber) {
+			routingActivationIndex = i;
+			break;
+		}
+	}
+
+	if (0xffff == routingActivationIndex) {
+		// No such routing activation!
+		return LOOKUP_SA_TA_TAUNKNOWN;
+	}
+
+	for (i = 0; i < DOIP_ROUTINGACTIVATION_TO_TARGET_RELATION_COUNT; i++) {
+		uint16 itTargetIndex = SoAd_Config.DoIpRoutingActivationToTargetAddressMap[i].target;
+
+		if ((ta == SoAd_Config.DoIpTargetAddresses[itTargetIndex].addressValue) &&
+			(routingActivationIndex == SoAd_Config.DoIpRoutingActivationToTargetAddressMap[i].routingActivation))
+		{
+			*targetIndex = itTargetIndex;
+			return LOOKUP_SA_TA_OK;
+
+		}
+	}
+
+	return LOOKUP_SA_TA_TAUNKNOWN;
+}
+
+
+static void createAndSendDiagnosticAck(uint16 sockNr, uint16 sa, uint16 ta)
+{
+	uint8 txBuffer[8+5];
+	uint16 bytesSent;
+
+	txBuffer[0] = DOIP_PROTOCOL_VERSION;
+	txBuffer[1] = ~DOIP_PROTOCOL_VERSION;
+	txBuffer[2] = 0x80;	// 0x8002->Diagnostic Message Positive Acknowledge
+	txBuffer[3] = 0x02;
+	txBuffer[4] = 0;	// Length = 0x00000005
+	txBuffer[5] = 0;
+	txBuffer[6] = 0;
+	txBuffer[7] = 5;
+
+	txBuffer[8+0] = ta >> 8;	// TA
+	txBuffer[8+1] = ta;
+
+	txBuffer[8+2] = sa >> 8;	// SA
+	txBuffer[8+3] = sa;
+
+	txBuffer[8+4] = 0;		// ACK
+
+	bytesSent = SoAd_SendIpMessage(sockNr, 8+5, txBuffer);
+	if (bytesSent != 8+5) {
+		// Failed to send ack. Link is probably down.
+//		DET_REPORTERROR(MODULE_ID_SOAD, 0, SOAD_DOIP_CREATE_AND_SEND_D_ACK_ID, SOAD_E_UNEXPECTED_EXECUTION);
+	}
+}
+
+static void createAndSendDiagnosticNack(uint16 sockNr, uint16 sa, uint16 ta, uint8 nackCode)
+{
+	uint8 txBuffer[8+5];
+	uint16 bytesSent;
+
+	txBuffer[0] = DOIP_PROTOCOL_VERSION;
+	txBuffer[1] = ~DOIP_PROTOCOL_VERSION;
+	txBuffer[2] = 0x80;	// 0x8003->Diagnostic Message Negative Acknowledge
+	txBuffer[3] = 0x03;
+	txBuffer[4] = 0;	// Length = 0x00000005
+	txBuffer[5] = 0;
+	txBuffer[6] = 0;
+	txBuffer[7] = 5;
+
+	txBuffer[8+0] = ta >> 8;	// TA
+	txBuffer[8+1] = ta;
+
+	txBuffer[8+2] = sa >> 8;	// SA
+	txBuffer[8+3] = sa;
+
+	txBuffer[8+4] = nackCode;
+
+	bytesSent = SoAd_SendIpMessage(sockNr, 8+5, txBuffer);
+	if (bytesSent != 8+5) {
+		// Failed to send ack. Link is probably down.
+//		DET_REPORTERROR(MODULE_ID_SOAD, 0, SOAD_DOIP_CREATE_AND_SEND_D_NACK_ID, SOAD_E_UNEXPECTED_EXECUTION);
+	}
+
+}
+
+static void associateTargetWithConnectionIndex(uint16 targetIndex, uint16 connectionIndex) {
+
+	targetConnectionMap[targetIndex] = connectionIndex;
+}
+
 static void handleDiagnosticMessage(uint16 sockNr, uint32 payloadLength, uint8 *rxBuffer)
 {
-#ifdef USE_PDUR
+
 	LookupSaTaResultType lookupResult;
     BufReq_ReturnType result;
-    PduInfoType *pduInfo;
+    PduInfoType pduInfo;
 	uint16 sa;
 	uint16 ta;
 	uint16 targetIndex;
 	uint16 connectionIndex;
-	uint16 diagnosticMessageLength = payloadLength - 4;
+	uint16 diagnosticMessageLength = payloadLength - 4; //减去SA TA只是数据部分的长度
 	uint16 i;
+
 
 	if (payloadLength >= 4) {
 		sa = (rxBuffer[8] << 8) | rxBuffer[9];
@@ -903,34 +1016,63 @@ static void handleDiagnosticMessage(uint16 sockNr, uint32 payloadLength, uint8 *
 		}
 
 		lookupResult = lookupSaTa(connectionIndex, sa, ta, &targetIndex);
+
 		if (lookupResult == LOOKUP_SA_TA_OK) {
 			// Send diagnostic message to PduR
-			PduLengthType len=0;
-			result = PduR_SoAdTpProvideRxBuffer(SoAd_Config.DoIpTargetAddresses[targetIndex].rxPdu,diagnosticMessageLength,&pduInfo);
-			if (result == BUFREQ_OK) {
+		    PduLengthType len;
+			if (SoAd_BufferGet(SOAD_RX_BUFFER_SIZE, &pduInfo.SduDataPtr)) {
 
-				pduInfo->SduLength = diagnosticMessageLength;
-				associateTargetWithConnectionIndex(targetIndex, connectionIndex);
+				result = Dcm_StartOfReception(SoAd_Config.DoIpTargetAddresses[targetIndex].txPdu, diagnosticMessageLength, &len);
 
-				(void)SoAd_RecvImpl(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, 12, 0);
+				if (result == BUFREQ_OK && len > 0) {
+					pduInfo.SduLength = diagnosticMessageLength;
+					associateTargetWithConnectionIndex(targetIndex, connectionIndex);
 
-				/* Let pdur copy received data */
-				while(len < diagnosticMessageLength)
-				{
-					len += SoAd_RecvImpl(SocketAdminList[sockNr].ConnectionHandle, &(pduInfo->SduDataPtr[len]), diagnosticMessageLength-len, 0);
+					(void)lwip_recv(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, 12, 0);
+					(void)lwip_recv(SocketAdminList[sockNr].ConnectionHandle, pduInfo.SduDataPtr, diagnosticMessageLength, 0);
+
+					/* Let pdur copy received data */
+					if(len < diagnosticMessageLength)
+					{
+						PduInfoType pduInfoChunk;
+						PduLengthType lenToSend = diagnosticMessageLength;
+						/* We need to copy in smaller parts */
+						pduInfoChunk.SduDataPtr = pduInfo.SduDataPtr;
+
+						while(lenToSend > 0)
+						{
+							if(lenToSend >= len){
+								Dcm_CopyRxData(SoAd_Config.DoIpTargetAddresses[targetIndex].txPdu, &pduInfoChunk, &len);
+								lenToSend -= len;
+							}else{
+								Dcm_CopyRxData(SoAd_Config.DoIpTargetAddresses[targetIndex].txPdu, &pduInfoChunk, &lenToSend);
+								lenToSend = 0;
+							}
+						}
+					}else{
+						Dcm_CopyRxData(SoAd_Config.DoIpTargetAddresses[targetIndex].txPdu, &pduInfo, &len);
+					}
+
+
+					/* Finished reception */
+					(void)Dcm_RxIndication(SoAd_Config.DoIpTargetAddresses[targetIndex].txPdu, NTFRSLT_OK);
+
+					// Send diagnostic message positive ack
+					createAndSendDiagnosticAck(sockNr, sa, ta);
+				}
+				else if (result != BUFREQ_E_BUSY){
+					createAndSendDiagnosticNack(sockNr, sa, ta, DOIP_E_DIAG_OUT_OF_MEMORY);
+					discardIpMessage(SocketAdminList[sockNr].ConnectionHandle, payloadLength + 8, rxBuffer);
+//					DET_REPORTERROR(MODULE_ID_SOAD, 0, SOAD_DOIP_HANDLE_DIAG_MSG_ID, SOAD_E_SHALL_NOT_HAPPEN);
 				}
 
-				/* Finished reception */
-				(void)PduR_SoAdTpRxIndication(SoAd_Config.DoIpTargetAddresses[targetIndex].rxPdu, NTFRSLT_OK);
-
-				// Send diagnostic message positive ack
-				createAndSendDiagnosticAck(sockNr, sa, ta);
+				SoAd_BufferFree(pduInfo.SduDataPtr);
 			}
 			else
 			{
 				createAndSendDiagnosticNack(sockNr, sa, ta, DOIP_E_DIAG_OUT_OF_MEMORY);
 				discardIpMessage(SocketAdminList[sockNr].ConnectionHandle, payloadLength + 8, rxBuffer);
-				DET_REPORTERROR(MODULE_ID_SOAD, 0, SOAD_DOIP_HANDLE_DIAG_MSG_ID, SOAD_E_SHALL_NOT_HAPPEN);
+//				DET_REPORTERROR(MODULE_ID_SOAD, 0, SOAD_DOIP_HANDLE_DIAG_MSG_ID, SOAD_E_SHALL_NOT_HAPPEN);
 			}
 
 		} else if (lookupResult == LOOKUP_SA_TA_TAUNKNOWN) {
@@ -946,7 +1088,6 @@ static void handleDiagnosticMessage(uint16 sockNr, uint32 payloadLength, uint8 *
 		createAndSendNack(sockNr, DOIP_E_INVALID_PAYLOAD_LENGTH);
 		SoAd_SocketClose(sockNr);
 	}
-#endif /* USE_PDUR */
 }
 
 void DoIp_HandleUdpRx(uint16 sockNr)
@@ -1075,12 +1216,12 @@ void DoIp_HandleTcpRx(uint16 sockNr)
 #endif /* Vehicle identification requests are not to be supported over TCP */
 
 						case 0x005:		// Routing Activation request
-							nBytes = SoAd_RecvImpl(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, payloadLength + 8, 0);
+//							nBytes = SoAd_RecvImpl(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, payloadLength + 8, 0);
 							handleRoutingActivationReq(sockNr, payloadLength, rxBuffer);
 							break;
 
 						case 0x008:     // Alive check response
-							nBytes = SoAd_RecvImpl(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, payloadLength + 8, 0);
+//							nBytes = SoAd_RecvImpl(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, payloadLength + 8, 0);
 							handleAliveCheckResp(sockNr, payloadLength, rxBuffer);
 							break;
 
@@ -1116,6 +1257,105 @@ void DoIp_HandleTcpRx(uint16 sockNr)
 		// No rx buffer available. Report this in Det. Message should be handled in the next (scanSockets) loop.
 //		DET_REPORTERROR(MODULE_ID_SOAD, 0, SOAD_DOIP_HANDLE_TCP_RX_ID, SOAD_E_NOBUFS);
 	}
+}
+
+Std_ReturnType DoIp_HandleTpTransmit(PduIdType SoAdSrcPduId, const PduInfoType* SoAdSrcPduInfoPtr)
+{
+	Std_ReturnType returnCode = E_OK;
+	PduInfoType txPduInfo;
+	PduInfoType txPayloadPduInfo;
+	uint16 socketNr;
+	uint16 bytesSent;
+
+	/*
+	 * Find which target the incoming Pdu belongs to:
+	 */
+	uint16 i;
+	uint16 targetIndex = 0xffff;
+	for (i = 0; i < DOIP_TARGET_COUNT; i++) {
+		if (SoAd_Config.DoIpTargetAddresses[i].rxPdu == SoAdSrcPduId) {
+			// Match!
+			targetIndex = i;
+			break;
+		}
+	}
+
+	if (targetIndex == 0xffff) {
+		// Did not find corresponding target. Most likely due to faulty configuration.
+		return E_NOT_OK;
+	}
+
+
+	if (PduAdminList[SoAdSrcPduId].PduStatus == PDU_IDLE ) {
+		socketNr = SoAd_Config.PduRoute[SoAdSrcPduId].DestinationSocketRef->SocketId;
+		if ((SocketAdminList[socketNr].SocketState == SOCKET_TCP_LISTENING)
+			|| (SocketAdminList[socketNr].SocketState == SOCKET_TCP_READY)
+			|| (SocketAdminList[socketNr].SocketState == SOCKET_UDP_READY))
+		{
+				PduAdminList[SoAdSrcPduId].PduStatus = PDU_TP_REQ_BUFFER;
+				txPduInfo.SduLength = SoAdSrcPduInfoPtr->SduLength + 12; // Make room for extra doip header
+
+				if(SoAd_BufferGet(txPduInfo.SduLength, &txPduInfo.SduDataPtr))
+				{
+					PduLengthType availableData;
+
+					uint16 connectionId = targetConnectionMap[targetIndex];
+					uint16 ta = connectionStatus[connectionId].sa; // Target of response is the source of the initiating party...
+					uint16 sa = SoAd_Config.DoIpTargetAddresses[targetIndex].addressValue;
+
+
+					PduAdminList[SoAdSrcPduId].PduStatus = PDU_TP_SENDING;
+					txPduInfo.SduDataPtr[0] = DOIP_PROTOCOL_VERSION;
+					txPduInfo.SduDataPtr[1] = ~DOIP_PROTOCOL_VERSION;
+					txPduInfo.SduDataPtr[2] = 0x80;	// 0x8001->Diagnostic message
+					txPduInfo.SduDataPtr[3] = 0x01;
+					txPduInfo.SduDataPtr[4] = (SoAdSrcPduInfoPtr->SduLength+4) >> 24;
+					txPduInfo.SduDataPtr[5] = (SoAdSrcPduInfoPtr->SduLength+4) >> 16;
+					txPduInfo.SduDataPtr[6] = (SoAdSrcPduInfoPtr->SduLength+4) >> 8;
+					txPduInfo.SduDataPtr[7] = (SoAdSrcPduInfoPtr->SduLength+4) >> 0;
+
+					txPduInfo.SduDataPtr[8] = sa >> 8;
+					txPduInfo.SduDataPtr[9] = sa >> 0;
+
+					txPduInfo.SduDataPtr[10] = ta >> 8;
+					txPduInfo.SduDataPtr[11] = ta >> 0;
+
+					// Copy the Pdu to the tx buffer
+					txPayloadPduInfo.SduDataPtr = txPduInfo.SduDataPtr + 12; // The actual SDU payload is after header
+					txPayloadPduInfo.SduLength = SoAdSrcPduInfoPtr->SduLength;
+					Dcm_CopyTxData(SoAd_Config.PduRoute[SoAdSrcPduId].SourcePduId, &txPayloadPduInfo, /* retry */NULL, &availableData );
+
+					// Then send the diagnostic message and confirm transmission to PduR
+					bytesSent = SoAd_SendIpMessage(socketNr, txPduInfo.SduLength, txPduInfo.SduDataPtr);
+
+					if (bytesSent == txPduInfo.SduLength) {
+						SoAd_BufferFree(txPduInfo.SduDataPtr);
+						Dcm_TxConfirmation(SoAd_Config.PduRoute[SoAdSrcPduId].SourcePduId, NTFRSLT_OK);
+					} else {
+						// All bytes were not sent - discarding this and setting a Det error instead.
+						SoAd_BufferFree(txPduInfo.SduDataPtr);
+//						DET_REPORTERROR(MODULE_ID_SOAD, 0, SOAD_DOIP_HANDLE_TP_TRANSMIT_ID, SOAD_E_UNEXPECTED_EXECUTION);
+
+						// Notify PduR abotu failed transmission.
+						Dcm_TxConfirmation(SoAd_Config.PduRoute[SoAdSrcPduId].SourcePduId, NTFRSLT_E_NOT_OK);
+
+					}
+				} else {
+					// No buffer to send with. Report failure back to PduR.
+//					DET_REPORTERROR(MODULE_ID_SOAD, 0, SOAD_DOIP_HANDLE_TP_TRANSMIT_ID, SOAD_E_NOBUFS);
+					Dcm_TxConfirmation(SoAd_Config.PduRoute[SoAdSrcPduId].SourcePduId, NTFRSLT_E_NO_BUFFER);
+				}
+				PduAdminList[SoAdSrcPduId].PduStatus = PDU_IDLE;
+		} else {
+			/* Socket not ready */
+			returnCode = E_NOT_OK;
+		}
+	} else {
+		/* A PDU is already in progress */
+		returnCode = E_NOT_OK;
+	}
+
+	return returnCode;
 }
 
 void DoIp_MainFunction() {

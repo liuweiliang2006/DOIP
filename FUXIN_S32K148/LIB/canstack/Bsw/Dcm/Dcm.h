@@ -85,6 +85,7 @@
 /* PduIdType */
 #define UDS_PHYSICAL_ON_CAN_RX      (0u)
 #define UDS_FUNCTIONAL_ON_CAN_RX    (1u) 
+#define UDS_FUNCTIONAL_ON_DOIP_RX    (2u)
 #define UDS_ON_CAN_TX               (0u)
 
 /* Diagnostic State Machine */
@@ -161,6 +162,7 @@ typedef struct
         
 extern VAR(Dcm_MsgItemType, DCM_NOINIT_DATA) gUDS_Physical_DiagBuffer[UDS_PHYS_BUFFER_SIZE]; 
 extern VAR(Dcm_MsgItemType, DCM_NOINIT_DATA) gUDS_Functional_DiagBuffer[UDS_FUNC_BUFFER_SIZE]; 
+extern VAR(Dcm_MsgItemType, DCM_NOINIT_DATA) gUDS_Doip_Functional_DiagBuffer[UDS_DOIP_BUFFER_SIZE];
 
 #if(ISO_15031_5_MultiChannel == STD_ON)
 extern VAR(Dcm_MsgItemType, DCM_NOINIT_DATA) gOBD_Physical_DiagBuffer[OBD_PHYS_BUFFER_SIZE];

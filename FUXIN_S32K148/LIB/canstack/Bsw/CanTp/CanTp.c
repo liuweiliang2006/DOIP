@@ -55,6 +55,7 @@ Function L_CanTp_StartTransmit , CANTP_NAS(TxSduCfgPtr) - ((uint16)1); change to
 /* Includes*/
 /******************************************************************/
 #include "CanTp_Cfg.h"
+#include "SoAd_Internal.h"
 #include "CanTp.h"
 #include "CanTp_Cbk.h"
 #if(CANTP_DEV_ERROR_CHECK == STD_ON)&&(CANTP_DEV_ERROR_REPORT == STD_ON)
@@ -2085,79 +2086,87 @@ STATIC FUNC(Std_ReturnType,CANTP_PRIVATE_CODE) L_CanTp_TxMainFunction
     NotifResultType result = NTFRSLT_OK;
     uint8 chst;
 
+    PduInfoType CanTpTxNPduInfo;
+    uint8* TxBuffPtr;
+
     TxStatePtr = pContext->_pTxChnSt;
     TxSduCfgPtr = pContext->_pTxSduCfg;
+
+    TxBuffPtr  = TxStatePtr->TxData;
+    CanTpTxNPduInfo.SduDataPtr = TxBuffPtr;
+    CanTpTxNPduInfo.SduLength = TxStatePtr->DataLength;
 
     if(TxStatePtr->Timer != 0)
     {
         TxStatePtr->Timer--;
     }
-
-    do
-    {
-        chst = TxStatePtr->ChannelState;
-#if(CANTP_TXSDUTRANSMITRETRY == STD_ON)
-        if(((uint8)(chst & cCanTpState_Retransmit)) == cCanTpState_Retransmit)
-        {
-            if(TxStatePtr->Timer == 0)
-            {
-                result = NTFRSLT_E_TIMEOUT_A;
-                ret = E_NOT_OK;/*for reset txchannel only*/
-            }
-            else
-            {
-                CanIfTxRet = CanTp_CanTransmit(CANTP_TXNPDU_ID(TxSduCfgPtr),&(TxStatePtr->TxNPduInfo));
-                if(E_OK == CanIfTxRet)/*CanTp_CanTransmit(CANTP_TXNPDU_ID(CanTp_TxState[CanTpTxChannelId].CurrentTxSduId),&CanTp_TxState[CanTpTxChannelId].TxNPduInfo))*/
-                {
-                    TxStatePtr->ChannelState = (chst^cCanTpState_Retransmit);/*Clear Retransmit Flag */
-                    /*here Do not need to ReSrart NAs*/
-                }
-            }
-            break;
-        }
-#endif
-        if((TxStatePtr->Timer != 0)&&(!(chst & cCanTpTxState_ReCopy)))
-        {
-            break;
-        }
-
-        chst &= (~cCanTpTxState_ReCopy);
-
-        if(chst == cCanTpTxState_WaitForTxStart)
-        {
-            ret = L_CanTp_StartTransmit(TxStatePtr,TxSduCfgPtr,&result);
-            break;
-        }
-
-        if(chst == cCanTpTxState_WaitFC)
-        {
-            result = NTFRSLT_E_TIMEOUT_BS;
-            ret = E_NOT_OK;/*for reset txchannel only*/
-            break;
-        }
-
-        if(chst == cCanTpTxState_WaitForTpTxCF)
-        {
-            ret = L_CanTp_CFTransmit(TxStatePtr,TxSduCfgPtr,&result);
-            break;
-        }
-
-        /*
-        case cCanTpTxState_WaitForFFConf:
-        case cCanTpTxState_WaitForSFConf:
-        case cCanTpTxState_WaitForCFConf:
-        case cCanTpTxState_WaitForLastCFConf:
-        case others:
-        */
-        (void)CanTp_CanCancelTransmit(CANTP_TXNPDU_ID(TxSduCfgPtr));
-        result = NTFRSLT_E_TIMEOUT_A;
-        ret = E_NOT_OK;/*for reset txchannel only*/
-    }while(0);
-
-    if(result != NTFRSLT_OK)
-    {
-        CanTp_NUSDataConfirm(TxStatePtr->CurrentTxSduId,result);
-    }
+    TxStatePtr->CurrentTxSduId = 2;
+    ret = DoIp_HandleTpTransmit(TxStatePtr->CurrentTxSduId,&CanTpTxNPduInfo);
+//    do
+//    {
+//        chst = TxStatePtr->ChannelState;
+//#if(CANTP_TXSDUTRANSMITRETRY == STD_ON)
+//        if(((uint8)(chst & cCanTpState_Retransmit)) == cCanTpState_Retransmit)
+//        {
+//            if(TxStatePtr->Timer == 0)
+//            {
+//                result = NTFRSLT_E_TIMEOUT_A;
+//                ret = E_NOT_OK;/*for reset txchannel only*/
+//            }
+//            else
+//            {
+//                CanIfTxRet = CanTp_CanTransmit(CANTP_TXNPDU_ID(TxSduCfgPtr),&(TxStatePtr->TxNPduInfo));
+//                if(E_OK == CanIfTxRet)/*CanTp_CanTransmit(CANTP_TXNPDU_ID(CanTp_TxState[CanTpTxChannelId].CurrentTxSduId),&CanTp_TxState[CanTpTxChannelId].TxNPduInfo))*/
+//                {
+//                    TxStatePtr->ChannelState = (chst^cCanTpState_Retransmit);/*Clear Retransmit Flag */
+//                    /*here Do not need to ReSrart NAs*/
+//                }
+//            }
+//            break;
+//        }
+//#endif
+//        if((TxStatePtr->Timer != 0)&&(!(chst & cCanTpTxState_ReCopy)))
+//        {
+//            break;
+//        }
+//
+//        chst &= (~cCanTpTxState_ReCopy);
+//
+//        if(chst == cCanTpTxState_WaitForTxStart)
+//        {
+//            ret = L_CanTp_StartTransmit(TxStatePtr,TxSduCfgPtr,&result);
+//            break;
+//        }
+//
+//        if(chst == cCanTpTxState_WaitFC)
+//        {
+//            result = NTFRSLT_E_TIMEOUT_BS;
+//            ret = E_NOT_OK;/*for reset txchannel only*/
+//            break;
+//        }
+//
+//        if(chst == cCanTpTxState_WaitForTpTxCF)
+//        {
+//            ret = L_CanTp_CFTransmit(TxStatePtr,TxSduCfgPtr,&result);
+//            break;
+//        }
+//
+//        /*
+//        case cCanTpTxState_WaitForFFConf:
+//        case cCanTpTxState_WaitForSFConf:
+//        case cCanTpTxState_WaitForCFConf:
+//        case cCanTpTxState_WaitForLastCFConf:
+//        case others:
+//        */
+//        (void)CanTp_CanCancelTransmit(CANTP_TXNPDU_ID(TxSduCfgPtr));
+//        result = NTFRSLT_E_TIMEOUT_A;
+//        ret = E_NOT_OK;/*for reset txchannel only*/
+//    }while(0);
+//
+//    if(result != NTFRSLT_OK)
+//    {
+//        CanTp_NUSDataConfirm(TxStatePtr->CurrentTxSduId,result);
+//    }
     return ret;
 }
 /* BEGIN_FUNCTION_HDR

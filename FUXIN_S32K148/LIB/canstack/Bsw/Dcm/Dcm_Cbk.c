@@ -109,7 +109,7 @@ FUNC(BufReq_ReturnType,DCM_PUBLIC_CODE) Dcm_StartOfReception
     } 
     else
     {
-        switch((uint8)(DcmRxPduId & 0x01))
+        switch((uint8)(DcmRxPduId & 0x03))
         {
             case UDS_PHYSICAL_ON_CAN_RX:
             Set_ActiveProtocol(DCM_UDS_ON_CAN);
@@ -121,6 +121,12 @@ FUNC(BufReq_ReturnType,DCM_PUBLIC_CODE) Dcm_StartOfReception
             Set_ActiveProtocol(DCM_UDS_ON_CAN);
             Clr_DiagState(DIAG_IDLE);
             gMsgContextType.reqData = gUDS_Functional_DiagBuffer;
+            break;
+
+            case UDS_FUNCTIONAL_ON_DOIP_RX:
+            Set_ActiveProtocol(DCM_UDS_ON_IP);
+            Clr_DiagState(DIAG_IDLE);
+            gMsgContextType.reqData = gUDS_Doip_Functional_DiagBuffer;
             break;
            
             #if(ISO_15031_5_MultiChannel == STD_ON)
@@ -198,6 +204,10 @@ FUNC(BufReq_ReturnType,DCM_PUBLIC_CODE) Dcm_CopyRxData
             gMsgContextType.msgAddInfo.reqType = 1u;
             break;
             
+            case UDS_FUNCTIONAL_ON_DOIP_RX:
+            gMsgContextType.msgAddInfo.reqType = 0u;
+            break;
+
             #if(ISO_15031_5_MultiChannel == STD_ON)
             case OBD_PHYSICAL_ON_CAN_RX:
             gMsgContextType.msgAddInfo.reqType = 0u;

@@ -13,14 +13,14 @@ static const SoAd_SocketConnectionType SoAd_SocketConnection [SOAD_SOCKET_COUNT]
 {
 	{	/* for DCM */
 		.SocketRemoteIpAddress = "192.168.0.2",
-		.SocketRemotePort = 777,
+		.SocketRemotePort = 24,
 		.SocketProtocol = SOAD_SOCKET_PROT_UDP,
 		.SocketLocalPort = 13400,
 		.AutosarConnectorType = SOAD_AUTOSAR_CONNECTOR_DOIP,
 	},
 	{	/* for COM */
 		.SocketRemoteIpAddress = "192.168.0.2",
-		.SocketRemotePort = 777,
+		.SocketRemotePort = 24,
 		.SocketProtocol = SOAD_SOCKET_PROT_TCP,
 		.SocketLocalPort = 13400,
 		.AutosarConnectorType = SOAD_AUTOSAR_CONNECTOR_DOIP,
@@ -32,7 +32,7 @@ static const DoIp_TargetAddressConfigType SoAd_DoIpTargetAddresses[DOIP_TARGET_C
 		.addressValue=0xfeed,  /* this 16 bit ta */
 		.txPdu=SOADTP_ID_SOAD_TX,
 //		.rxPdu=PDUR_ID_SOAD_RX
-		.rxPdu=NULL
+		.rxPdu=SOADTP_ID_SOAD_RX
 	},
 };
 static const DoIp_TesterConfigType SoAd_DoIpTesters[DOIP_TESTER_COUNT] =
@@ -44,7 +44,7 @@ static const DoIp_TesterConfigType SoAd_DoIpTesters[DOIP_TESTER_COUNT] =
 static const DoIp_RoutingActivationConfigType SoAd_DoIpRoutingActivations[DOIP_ROUTINGACTIVATION_COUNT] =
 {
 	{
-		.activationNumber = 0xda,
+		.activationNumber = 0x0,
 		.authenticationCallback = NULL,
 		.confirmationCallback = NULL
 	}
@@ -77,11 +77,16 @@ const SoAd_ConfigType SoAd_Config =
 	.DoIpTesters= SoAd_DoIpTesters,
 	.DoIpRoutingActivations = SoAd_DoIpRoutingActivations,
 	.DoIpRoutingActivationToTargetAddressMap = SoAd_DoIpRoutingActivationToTargetAddressMap,
-	.PduRoute = SoAd_PduRoute
+	.PduRoute = SoAd_PduRoute,
+	.DoIpNodeLogicalAddress = 0x1111
 };
 
 Std_ReturnType SoAd_DoIp_Arc_GetVin(uint8* buf, uint8 len)
 {
+	for(uint8 i = 0; i<len; i++ )
+	{
+		*(buf+i) = i;
+	}
 	return E_OK;
 }
 

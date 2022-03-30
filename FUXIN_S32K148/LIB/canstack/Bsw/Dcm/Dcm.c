@@ -66,6 +66,9 @@ VAR(Dcm_MsgItemType, DCM_NOINIT_DATA)
 VAR(Dcm_MsgItemType, DCM_NOINIT_DATA)   
                               gUDS_Functional_DiagBuffer[UDS_FUNC_BUFFER_SIZE];
 
+VAR(Dcm_MsgItemType, DCM_NOINIT_DATA)
+                              gUDS_Doip_Functional_DiagBuffer[UDS_DOIP_BUFFER_SIZE];
+
 #if(ISO_15031_5_MultiChannel == STD_ON)
 VAR(DcmDslBufferSize, DCM_NOINIT_DATA)  
           gDcmDslAvailableBufferSize[DCM_NUMBER_OF_CHANNEL_BUFFER_OBD_INCLUDE];
@@ -297,6 +300,7 @@ FUNC(void,DCM_PUBLIC_CODE) Dcm_Init
     #else
     gDcmDslAvailableBufferSize[DCM_INDEX_0] = (uint32)UDS_PHYS_BUFFER_SIZE;
     gDcmDslAvailableBufferSize[DCM_INDEX_1] = (uint32)UDS_FUNC_BUFFER_SIZE;
+    gDcmDslAvailableBufferSize[DCM_INDEX_2] = (uint32)UDS_DOIP_BUFFER_SIZE;
     #endif
     
     for(i = 0u; i < UDS_PHYS_BUFFER_SIZE; i++)
@@ -309,6 +313,10 @@ FUNC(void,DCM_PUBLIC_CODE) Dcm_Init
         gUDS_Functional_DiagBuffer[i] = 0u;
     }
 
+    for(i = 0u; i < UDS_DOIP_BUFFER_SIZE; i++)
+    {
+    	gUDS_Doip_Functional_DiagBuffer[i] = 0u;
+    }
     service = gServiceTable_1[DCM_INDEX_0];
     
     #if(DCM_SERVICE_22_ENABLED == STD_ON)

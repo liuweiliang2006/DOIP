@@ -25,8 +25,11 @@
 #include "SoAd.h"
 #include "stddef.h"
 #include "SoAd_ConfigTypes.h"
+#include "ComStack_Types.h"
+#include "ComStack_Types_Cfg.h"
 //#include "TcpIp.h"
 
+//typedef uint8       PduIdType;
 
 #if  ( SOAD_DEV_ERROR_DETECT == STD_ON )
 #include "Det.h"
@@ -155,6 +158,8 @@ void DoIp_SendVehicleAnnouncement(uint16 sockNr);
 //void DoIp_LocalIpAddrAssignmentChg(SoAd_SoConIdType linkId, TcpIp_IpAddrStateType state);
 
 uint8 SoAd_GetNofCurrentlyUsedTcpSockets();
+
+Std_ReturnType DoIp_HandleTpTransmit(PduIdType SoAdSrcPduId, const PduInfoType* SoAdSrcPduInfoPtr);
 
 /* LWIP/UIP/socket */
 int SoAd_SocketCloseImpl(int s);
