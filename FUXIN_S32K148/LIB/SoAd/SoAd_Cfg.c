@@ -29,7 +29,7 @@ static const SoAd_SocketConnectionType SoAd_SocketConnection [SOAD_SOCKET_COUNT]
 static const DoIp_TargetAddressConfigType SoAd_DoIpTargetAddresses[DOIP_TARGET_COUNT]=
 {
 	{
-		.addressValue=0xfeed,  /* this 16 bit ta */
+		.addressValue=0x1111,  /* this 16 bit ta */
 		.txPdu=SOADTP_ID_SOAD_TX,
 //		.rxPdu=PDUR_ID_SOAD_RX
 		.rxPdu=SOADTP_ID_SOAD_RX

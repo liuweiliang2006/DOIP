@@ -990,7 +990,7 @@ static void associateTargetWithConnectionIndex(uint16 targetIndex, uint16 connec
 
 static void handleDiagnosticMessage(uint16 sockNr, uint32 payloadLength, uint8 *rxBuffer)
 {
-
+	int nBytes;
 	LookupSaTaResultType lookupResult;
     BufReq_ReturnType result;
     PduInfoType pduInfo;
@@ -1028,8 +1028,9 @@ static void handleDiagnosticMessage(uint16 sockNr, uint32 payloadLength, uint8 *
 					pduInfo.SduLength = diagnosticMessageLength;
 					associateTargetWithConnectionIndex(targetIndex, connectionIndex);
 
-					(void)lwip_recv(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, 12, 0);
-					(void)lwip_recv(SocketAdminList[sockNr].ConnectionHandle, pduInfo.SduDataPtr, diagnosticMessageLength, 0);
+//					nBytes =lwip_recv(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, 12, 0);
+//					nBytes =lwip_recv(SocketAdminList[sockNr].ConnectionHandle, pduInfo.SduDataPtr, diagnosticMessageLength, 0);
+					memcpy(pduInfo.SduDataPtr,rxBuffer+12,diagnosticMessageLength);
 
 					/* Let pdur copy received data */
 					if(len < diagnosticMessageLength)
@@ -1112,7 +1113,7 @@ void DoIp_HandleUdpRx(uint16 sockNr)
 				if ((payloadLength + 8) <= SOAD_RX_BUFFER_SIZE) {
 					if ((payloadLength + 8) <= nBytes) {
 						// Grab the message
-						nBytes = SoAd_RecvFromImpl(SocketAdminList[sockNr].SocketHandle, rxBuffer, payloadLength + 8, 0, &RemoteIpAddress, &RemotePort);
+//						nBytes = SoAd_RecvFromImpl(SocketAdminList[sockNr].SocketHandle, rxBuffer, payloadLength + 8, 0, &RemoteIpAddress, &RemotePort);
 						SocketAdminList[sockNr].RemotePort = RemotePort;
 						SocketAdminList[sockNr].RemoteIpAddress = RemoteIpAddress;
 						switch (payloadType) {
@@ -1137,6 +1138,7 @@ void DoIp_HandleUdpRx(uint16 sockNr)
 							handleRoutingActivationReq(sockNr, payloadLength, rxBuffer);
 							break;
 #endif /* Routing activation is not to be supported over UDP */
+
 
 						case 0x4001:    /* DoIP entity status request */
 							handleEntityStatusReq(sockNr, payloadLength, rxBuffer);
@@ -1227,7 +1229,7 @@ void DoIp_HandleTcpRx(uint16 sockNr)
 
 						case 0x4003:
 							// @req SWS_DoIP_00090
-							nBytes = SoAd_RecvImpl(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, payloadLength + 8, 0);
+//							nBytes = SoAd_RecvImpl(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, payloadLength + 8, 0);
 							createAndSendNack(sockNr, DOIP_E_INVALID_PAYLOAD_LENGTH);
 							break;
 
@@ -1237,7 +1239,7 @@ void DoIp_HandleTcpRx(uint16 sockNr)
 							break;
 
 						default:
-							nBytes = SoAd_RecvImpl(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, payloadLength + 8, 0);
+//							nBytes = SoAd_RecvImpl(SocketAdminList[sockNr].ConnectionHandle, rxBuffer, payloadLength + 8, 0);
 							createAndSendNack(sockNr, DOIP_E_UNKNOWN_PAYLOAD_TYPE);
 							break;
 						}

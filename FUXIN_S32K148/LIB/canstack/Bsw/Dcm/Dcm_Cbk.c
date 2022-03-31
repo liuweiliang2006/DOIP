@@ -194,7 +194,7 @@ FUNC(BufReq_ReturnType,DCM_PUBLIC_CODE) Dcm_CopyRxData
     }
     else
     {
-        switch((uint8)(DcmRxPduId & 0x01))
+        switch((uint8)(DcmRxPduId & 0x03))
         {
             case UDS_PHYSICAL_ON_CAN_RX:
             gMsgContextType.msgAddInfo.reqType = 0u;
@@ -227,8 +227,8 @@ FUNC(BufReq_ReturnType,DCM_PUBLIC_CODE) Dcm_CopyRxData
         /* changed by larry 2013.11.12 QAC */
         /* gMsgContextType.reqData += (uint8)PduInfoPointer->SduLength; */
         gMsgContextType.reqData = (&gMsgContextType.reqData[PduInfoPointer->SduLength]); 
-        gDcmDslAvailableBufferSize[(uint8)(DcmRxPduId & 0x01)] -= (PduInfoPointer->SduLength);
-        *RxBufferSizePtr = (uint16)gDcmDslAvailableBufferSize[(uint8)(DcmRxPduId & 0x01)];
+        gDcmDslAvailableBufferSize[(uint8)(DcmRxPduId & 0x03)] -= (PduInfoPointer->SduLength);
+        *RxBufferSizePtr = (uint16)gDcmDslAvailableBufferSize[(uint8)(DcmRxPduId & 0x03)];
      
 
     }

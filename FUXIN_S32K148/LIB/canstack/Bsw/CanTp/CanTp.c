@@ -566,7 +566,6 @@ FUNC(Std_ReturnType,CANTP_PUBLIC_CODE) CanTp_Transmit
     else
 #endif
     {
-
         pTxNsdu = &(Admin.pTxNsduCfg[CanTpTxSduId]);
         CanTpTxChannelId = CANTP_TXTPCHANNEL_ID(pTxNsdu);
         CanTp_CanInterruptDisable();
