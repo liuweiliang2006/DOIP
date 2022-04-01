@@ -12,15 +12,17 @@
 static const SoAd_SocketConnectionType SoAd_SocketConnection [SOAD_SOCKET_COUNT] =
 {
 	{	/* for DCM */
+		.SocketId = 0,
 		.SocketRemoteIpAddress = "192.168.0.2",
-		.SocketRemotePort = 24,
+		.SocketRemotePort = 13400,
 		.SocketProtocol = SOAD_SOCKET_PROT_UDP,
 		.SocketLocalPort = 13400,
 		.AutosarConnectorType = SOAD_AUTOSAR_CONNECTOR_DOIP,
 	},
 	{	/* for COM */
+		.SocketId = 1,
 		.SocketRemoteIpAddress = "192.168.0.2",
-		.SocketRemotePort = 24,
+		.SocketRemotePort = 13400,
 		.SocketProtocol = SOAD_SOCKET_PROT_TCP,
 		.SocketLocalPort = 13400,
 		.AutosarConnectorType = SOAD_AUTOSAR_CONNECTOR_DOIP,

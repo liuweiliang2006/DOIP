@@ -2099,8 +2099,12 @@ STATIC FUNC(Std_ReturnType,CANTP_PRIVATE_CODE) L_CanTp_TxMainFunction
     {
         TxStatePtr->Timer--;
     }
-    TxStatePtr->CurrentTxSduId = 2;
+    TxStatePtr->CurrentTxSduId = 1;
     ret = DoIp_HandleTpTransmit(TxStatePtr->CurrentTxSduId,&CanTpTxNPduInfo);
+    if(ret == E_OK)
+    {
+    	L_CanTp_TxChannelInit(pContext->_pTxChnSt);
+    }
 //    do
 //    {
 //        chst = TxStatePtr->ChannelState;

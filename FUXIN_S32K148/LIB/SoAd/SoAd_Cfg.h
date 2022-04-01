@@ -26,7 +26,7 @@
 /* ============================ [ MACROS    ] ====================================================== */
 #define SOAD_DEV_ERROR_DETECT STD_ON
 
-#define SOADTP_ID_SOAD_RX 0
+#define SOADTP_ID_SOAD_RX 1
 #define SOADTP_ID_SOAD_TX 0
 #define SOADIF_ID_SOAD_RX 1
 #define SOADIF_ID_SOAD_TX 1

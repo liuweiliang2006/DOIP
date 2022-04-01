@@ -1290,6 +1290,7 @@ Std_ReturnType DoIp_HandleTpTransmit(PduIdType SoAdSrcPduId, const PduInfoType* 
 
 	if (PduAdminList[SoAdSrcPduId].PduStatus == PDU_IDLE ) {
 		socketNr = SoAd_Config.PduRoute[SoAdSrcPduId].DestinationSocketRef->SocketId;
+//		socketNr = 1;
 		if ((SocketAdminList[socketNr].SocketState == SOCKET_TCP_LISTENING)
 			|| (SocketAdminList[socketNr].SocketState == SOCKET_TCP_READY)
 			|| (SocketAdminList[socketNr].SocketState == SOCKET_UDP_READY))
