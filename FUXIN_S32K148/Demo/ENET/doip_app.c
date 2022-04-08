@@ -53,6 +53,7 @@ void UDP_test_func()
 
 	    udp_addr.sin_family = AF_INET;
 	    udp_addr.sin_addr.s_addr = INADDR_ANY;
+//	    inet_pton
 	    udp_addr.sin_port = htons(LOCAL_PORT);
 	    memset(&(udp_addr.sin_zero), 0, sizeof(udp_addr.sin_zero));
 

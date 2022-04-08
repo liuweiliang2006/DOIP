@@ -22,9 +22,9 @@
         <Line>Generated_Code\i2c_pal_cfg.h</Line>
         <Line>Generated_Code\adc_pal_cfg.h</Line>
       </GenExtraFiles>
-      <XtraAge0>1417036648</XtraAge0>
+      <XtraAge0>1418161586</XtraAge0>
       <XtraAge1>1416722158</XtraAge1>
-      <XtraAge2>1417036596</XtraAge2>
+      <XtraAge2>1418161477</XtraAge2>
       <XtraAge3>1416789815</XtraAge3>
       <XtraAge4>1416644410</XtraAge4>
       <XtraAge5>1416644410</XtraAge5>
@@ -3739,7 +3739,7 @@
     </GenFiles>
     <SignalListFile />
     <DestinationCompiler>GNUC</DestinationCompiler>
-    <ProjectModificationStamp>57</ProjectModificationStamp>
+    <ProjectModificationStamp>58</ProjectModificationStamp>
   </Options>
   <CpuID_1>
     <Generated>true</Generated>
@@ -4205,7 +4205,7 @@
     <GenComponentVersion>1.0.0</GenComponentVersion>
     <GenDriverVersion>01.00</GenDriverVersion>
     <GenEventModule />
-    <HeaderAge>1417036596</HeaderAge>
+    <HeaderAge>1418161476</HeaderAge>
     <CodeAge>1416722158</CodeAge>
     <AsemblAge>-1</AsemblAge>
     <GenNumMethods>17</GenNumMethods>
@@ -4591,8 +4591,8 @@
     <GenComponentVersion>01.000</GenComponentVersion>
     <GenDriverVersion>01.00</GenDriverVersion>
     <GenEventModule />
-    <HeaderAge>1417036648</HeaderAge>
-    <CodeAge>1417036648</CodeAge>
+    <HeaderAge>1418161586</HeaderAge>
+    <CodeAge>1418161586</CodeAge>
     <AsemblAge>-1</AsemblAge>
     <GenNumMethods>0</GenNumMethods>
     <GenNumEvents>0</GenNumEvents>

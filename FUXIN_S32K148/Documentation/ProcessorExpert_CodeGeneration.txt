@@ -298,3 +298,46 @@ Target Processor: S32K148_176; CPUDB ver 3.00.000
 # Documentation
  - Documentation\FUXIN_S32K148.txt - regenerated
 Totally 5 file(s) changed during code generation.
+###############################################################
+Code generation 2022/04/07, 13:42; CodeGen: 13 by user: Administrator
+by Processor Expert 10.1  for Internal Usage Only; PE core 05.21
+Target Processor: S32K148_176; CPUDB ver 3.00.000
+# Settings of the component clockMan1:clock_manager have been changed:
+ > property ProjectComponentsCountChanged : value changed from 0 to 2
+# Settings of the component FreeRTOS:FreeRTOS have been changed:
+ > property Minimal stack size : value changed from 90 to 512
+ > property Total heap size : value changed from 61140 to 49152
+ - HAL\FreeRTOS.c - changed
+ - HAL\FreeRTOSConfig.h - changed
+# Component slave:lpspi, the following files modified due to internal interdependency:
+ - HAL\slave.h - changed
+# Component lin_cfg:LinStack, the following files modified due to internal interdependency:
+ - HAL\lin_cfg.h - changed
+ - HAL\lin_cfg.c - changed
+# Settings of the component tcpip_middleware:tcpip have been changed:
+ > property Minimal stack size[bytes] : value changed from 90 to 512
+ > property Total heap size[bytes] : value changed from 61140 to 49152
+ - HAL\lwipopts.h - changed
+# Documentation
+ - Documentation\FUXIN_S32K148.txt - regenerated
+Totally 7 file(s) changed during code generation.
+###############################################################
+Code generation 2022/04/07, 13:45; CodeGen: 14 by user: Administrator
+by Processor Expert 10.1  for Internal Usage Only; PE core 05.21
+Target Processor: S32K148_176; CPUDB ver 3.00.000
+# Settings of the component clockMan1:clock_manager have been changed:
+ > property ProjectComponentsCountChanged : value changed from 2 to 0
+# Settings of the component FreeRTOS:FreeRTOS have been changed:
+ > property Minimal stack size : value changed from 512 to 90
+ > property Total heap size : value changed from 49152 to 61400
+ - HAL\FreeRTOS.c - changed
+ - HAL\FreeRTOSConfig.h - changed
+# Component lin_cfg:LinStack, the following files modified due to internal interdependency:
+ - HAL\lin_cfg.h - changed
+ - HAL\lin_cfg.c - changed
+# Settings of the component tcpip_middleware:tcpip have been changed:
+ > property Minimal stack size[bytes] : value changed from 512 to 90
+ > property Total heap size[bytes] : value changed from 49152 to 61400
+# Documentation
+ - Documentation\FUXIN_S32K148.txt - regenerated
+Totally 5 file(s) changed during code generation.
