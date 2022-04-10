@@ -5,7 +5,7 @@
 #include "tdrm.h"
 #include "CanTp_Cbk.h"
 #include <stddef.h>
-#include "doip_client.h"
+//#include "doip_client.h"
 
 /* --- Version --- */
 #if ( DIAG_TDRM_VERSION         != 0x0105u ) || \
@@ -133,7 +133,7 @@ tTdrmReturn TdrmComSendMessage( vuint8 *dataBuffer, vuint16 dataLength )
 	   aavv[i]=Tdrm_info_temp.SduDataPtr[i];
    }
 //   tp_rval = CanTp_Transmit(tdrmTpChannel,&Tdrm_info_temp);
-   tp_rval = doip_client_send(Tdrm_info_temp.SduDataPtr,&Tdrm_info_temp.SduLength);
+//   tp_rval = doip_client_send(Tdrm_info_temp.SduDataPtr,&Tdrm_info_temp.SduLength);
 
    /* Map TpTransmit return value to internal TDRM return value */
    switch (tp_rval)

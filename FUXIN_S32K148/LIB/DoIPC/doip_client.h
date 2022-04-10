@@ -1,22 +1,27 @@
 /*
- * doip_client.h
+ * Copyright 2021 NXP
  *
- *  Created on: 2022Äê4ÔÂ7ÈÕ
- *      Author: Administrator
- */
+ * SPDX-License-Identifier:  BSD-3-Clause
+*/
+#pragma once
+#include "uds_tp.h"
+#include "doip_feature.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#ifndef DOIPC_DOIP_CLIENT_H_
-#define DOIPC_DOIP_CLIENT_H_
+int doipc_init(void);
 
-#include "stdint.h"
+void doipc_uninit(void);
 
-typedef void (*doip_recv_cb)(const uint8_t *payload, uint16_t len);
+int doipc_get_ta_by_ip(uint32_t ip, uint16_t *ta);
 
-int doip_routing_active(void);
-int doip_client_send(uint8_t *payload, uint32_t len);
-int doip_client_init(void);
-int doiphdr_create(void);
-void doip_register_cb(doip_recv_cb cb);
-void set_ipaddr(char *local, char *remote);
+struct uds_tp *doipc_open(uint16_t sa, uint32_t ip);
 
-#endif /* DOIPC_DOIP_CLIENT_H_ */
+void doipc_close(struct uds_tp * tp);
+
+int doipc_for_each_entity(uint32_t bc_ip, int (*callback)(uint32_t ip, struct doip_pt_vehicle_id_rsp *));
+
+#ifdef __cplusplus
+}
+#endif

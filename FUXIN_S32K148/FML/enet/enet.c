@@ -128,6 +128,7 @@
 
 #include "mqtt_app.h"
 #include "doip_app.h"
+#include "doipTester.h"
 #include "enet.h"
 /* applications includes */
 
@@ -473,6 +474,7 @@ apps_init(void)
   LWIP_APP_INIT();
 #endif
   doip_task_init();
+  doip_tester_task_init();
 #ifdef MQTT_TEST
 //  mqtt_init();
 #endif
